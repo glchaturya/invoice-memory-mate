@@ -85,5 +85,5 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
 export function scenarioForFile(fileName: string): DemoScenario {
   const name = fileName.toLowerCase();
   const hit = DEMO_SCENARIOS.find((s) => name.includes(s.extracted.invoice_number.toLowerCase()));
-  return hit ?? DEMO_SCENARIOS[1];
+  return (hit ?? DEMO_SCENARIOS[1]) as DemoScenario;
 }

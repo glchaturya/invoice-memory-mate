@@ -195,7 +195,7 @@ export async function processInvoice(extracted: ExtractedInvoice, fileName: stri
       .eq("invoice_number", extracted.invoice_number)
       .limit(1)
   ).data as { id: string }[] | null;
-  const duplicateOf = existing && existing.length > 0 ? existing[0].id : null;
+  const duplicateOf = existing?.[0]?.id ?? null;
 
   // 4. Store the invoice
   const invoice = must(
@@ -324,7 +324,7 @@ export async function processInvoice(extracted: ExtractedInvoice, fileName: stri
     });
   }
 
-  await supabase.from("exceptions").insert(rows);
+  await supabase.from("exceptions").insert(rows as never);
 
   const critical = ordered.some(
     (e) => e.exception_type === "duplicate" || e.severity === "high",

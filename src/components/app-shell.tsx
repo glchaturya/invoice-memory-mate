@@ -31,7 +31,12 @@ export function AppShell({
 }) {
   const { data } = useQuery({ queryKey: ["nav-counts"], queryFn: navCounts });
 
-  const items: { to: string; label: string; count?: number; tone?: string }[] = [
+  const items: {
+    to: string;
+    label: string;
+    count?: number | undefined;
+    tone?: string | undefined;
+  }[] = [
     { to: "/", label: "Overview" },
     { to: "/invoices", label: "Invoices", count: data?.invoices },
     { to: "/exceptions", label: "Exceptions", count: data?.exceptions, tone: "text-crit" },
