@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ExceptionsRouteImport } from './routes/exceptions'
+import { Route as UploadRouteImport } from './routes/upload'
 import { Route as InvoicesIndexRouteImport } from './routes/invoices.index'
+import { Route as VendorsIndexRouteImport } from './routes/vendors.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -23,40 +25,58 @@ const ExceptionsRoute = ExceptionsRouteImport.update({
   path: '/exceptions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UploadRoute = UploadRouteImport.update({
+  id: '/upload',
+  path: '/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InvoicesIndexRoute = InvoicesIndexRouteImport.update({
   id: '/invoices/',
   path: '/invoices/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VendorsIndexRoute = VendorsIndexRouteImport.update({
+  id: '/vendors/',
+  path: '/vendors/',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/exceptions': typeof ExceptionsRoute
+  '/upload': typeof UploadRoute
   '/invoices/': typeof InvoicesIndexRoute
+  '/vendors/': typeof VendorsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/exceptions': typeof ExceptionsRoute
+  '/upload': typeof UploadRoute
   '/invoices': typeof InvoicesIndexRoute
+  '/vendors': typeof VendorsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/exceptions': typeof ExceptionsRoute
+  '/upload': typeof UploadRoute
   '/invoices/': typeof InvoicesIndexRoute
+  '/vendors/': typeof VendorsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/exceptions' | '/invoices/'
+  fullPaths: '/' | '/exceptions' | '/upload' | '/invoices/' | '/vendors/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/exceptions' | '/invoices'
-  id: '__root__' | '/' | '/exceptions' | '/invoices/'
+  to: '/' | '/exceptions' | '/upload' | '/invoices' | '/vendors'
+  id: '__root__' | '/' | '/exceptions' | '/upload' | '/invoices/' | '/vendors/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ExceptionsRoute: typeof ExceptionsRoute
+  UploadRoute: typeof UploadRoute
   InvoicesIndexRoute: typeof InvoicesIndexRoute
+  VendorsIndexRoute: typeof VendorsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,11 +95,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExceptionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/upload': {
+      id: '/upload'
+      path: '/upload'
+      fullPath: '/upload'
+      preLoaderRoute: typeof UploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/invoices/': {
       id: '/invoices/'
       path: '/invoices'
       fullPath: '/invoices/'
       preLoaderRoute: typeof InvoicesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vendors/': {
+      id: '/vendors/'
+      path: '/vendors'
+      fullPath: '/vendors/'
+      preLoaderRoute: typeof VendorsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -88,7 +122,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ExceptionsRoute: ExceptionsRoute,
+  UploadRoute: UploadRoute,
   InvoicesIndexRoute: InvoicesIndexRoute,
+  VendorsIndexRoute: VendorsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
