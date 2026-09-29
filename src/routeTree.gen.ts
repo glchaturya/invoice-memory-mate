@@ -13,7 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ExceptionsRouteImport } from './routes/exceptions'
 import { Route as UploadRouteImport } from './routes/upload'
 import { Route as InvoicesIndexRouteImport } from './routes/invoices.index'
+import { Route as InvoicesInvoiceIdRouteImport } from './routes/invoices.$invoiceId'
 import { Route as VendorsIndexRouteImport } from './routes/vendors.index'
+import { Route as VendorsVendorIdRouteImport } from './routes/vendors.$vendorId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -35,9 +37,19 @@ const InvoicesIndexRoute = InvoicesIndexRouteImport.update({
   path: '/invoices/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InvoicesInvoiceIdRoute = InvoicesInvoiceIdRouteImport.update({
+  id: '/invoices/$invoiceId',
+  path: '/invoices/$invoiceId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VendorsIndexRoute = VendorsIndexRouteImport.update({
   id: '/vendors/',
   path: '/vendors/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VendorsVendorIdRoute = VendorsVendorIdRouteImport.update({
+  id: '/vendors/$vendorId',
+  path: '/vendors/$vendorId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -45,6 +57,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/exceptions': typeof ExceptionsRoute
   '/upload': typeof UploadRoute
+  '/invoices/$invoiceId': typeof InvoicesInvoiceIdRoute
+  '/vendors/$vendorId': typeof VendorsVendorIdRoute
   '/invoices/': typeof InvoicesIndexRoute
   '/vendors/': typeof VendorsIndexRoute
 }
@@ -52,6 +66,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/exceptions': typeof ExceptionsRoute
   '/upload': typeof UploadRoute
+  '/invoices/$invoiceId': typeof InvoicesInvoiceIdRoute
+  '/vendors/$vendorId': typeof VendorsVendorIdRoute
   '/invoices': typeof InvoicesIndexRoute
   '/vendors': typeof VendorsIndexRoute
 }
@@ -60,21 +76,47 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/exceptions': typeof ExceptionsRoute
   '/upload': typeof UploadRoute
+  '/invoices/$invoiceId': typeof InvoicesInvoiceIdRoute
+  '/vendors/$vendorId': typeof VendorsVendorIdRoute
   '/invoices/': typeof InvoicesIndexRoute
   '/vendors/': typeof VendorsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/exceptions' | '/upload' | '/invoices/' | '/vendors/'
+  fullPaths:
+    | '/'
+    | '/exceptions'
+    | '/upload'
+    | '/invoices/$invoiceId'
+    | '/vendors/$vendorId'
+    | '/invoices/'
+    | '/vendors/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/exceptions' | '/upload' | '/invoices' | '/vendors'
-  id: '__root__' | '/' | '/exceptions' | '/upload' | '/invoices/' | '/vendors/'
+  to:
+    | '/'
+    | '/exceptions'
+    | '/upload'
+    | '/invoices/$invoiceId'
+    | '/vendors/$vendorId'
+    | '/invoices'
+    | '/vendors'
+  id:
+    | '__root__'
+    | '/'
+    | '/exceptions'
+    | '/upload'
+    | '/invoices/$invoiceId'
+    | '/vendors/$vendorId'
+    | '/invoices/'
+    | '/vendors/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ExceptionsRoute: typeof ExceptionsRoute
   UploadRoute: typeof UploadRoute
+  InvoicesInvoiceIdRoute: typeof InvoicesInvoiceIdRoute
+  VendorsVendorIdRoute: typeof VendorsVendorIdRoute
   InvoicesIndexRoute: typeof InvoicesIndexRoute
   VendorsIndexRoute: typeof VendorsIndexRoute
 }
@@ -109,11 +151,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InvoicesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invoices/$invoiceId': {
+      id: '/invoices/$invoiceId'
+      path: '/invoices/$invoiceId'
+      fullPath: '/invoices/$invoiceId'
+      preLoaderRoute: typeof InvoicesInvoiceIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vendors/': {
       id: '/vendors/'
       path: '/vendors'
       fullPath: '/vendors/'
       preLoaderRoute: typeof VendorsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vendors/$vendorId': {
+      id: '/vendors/$vendorId'
+      path: '/vendors/$vendorId'
+      fullPath: '/vendors/$vendorId'
+      preLoaderRoute: typeof VendorsVendorIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -123,6 +179,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ExceptionsRoute: ExceptionsRoute,
   UploadRoute: UploadRoute,
+  InvoicesInvoiceIdRoute: InvoicesInvoiceIdRoute,
+  VendorsVendorIdRoute: VendorsVendorIdRoute,
   InvoicesIndexRoute: InvoicesIndexRoute,
   VendorsIndexRoute: VendorsIndexRoute,
 }

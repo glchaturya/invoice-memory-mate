@@ -28,6 +28,8 @@ export interface AnalyseInput {
     outcome: string;
     occurred_on: string | null;
   }[];
+  /** Facts recalled from Hindsight persistent memory for this vendor. */
+  hindsight_memories: { id: string; text: string; occurred: string | null }[];
 }
 
 export interface AnalyseOutput {
@@ -70,9 +72,10 @@ const SYSTEM = `You are the reasoning layer of an Accounts Payable exception age
 You analyse one detected invoice exception together with that vendor's historical cases retrieved from memory.
 Rules:
 - You RECOMMEND only. Never state that an invoice has been approved, rejected or paid. A human AP reviewer decides.
-- Ground the historical_pattern strictly in the supplied similar cases; cite their invoice numbers. If none are supplied, say so plainly.
+- hindsight_memories are facts recalled from the vendor's persistent Hindsight memory; treat them as the primary history. similar_cases are local ledger cases.
+- Ground the historical_pattern strictly in the supplied memories and cases; cite invoice numbers they contain. If none are supplied, say so plainly.
 - Keep every field under 60 words, factual and auditable. No greetings, no markdown.
-- memory_used must list only invoice numbers or titles taken from the supplied similar cases.`;
+- memory_used must list only invoice numbers or short labels taken from the supplied memories or cases.`;
 
 export const analyseException = createServerFn({ method: "POST" })
   .inputValidator((data: AnalyseInput) => data)

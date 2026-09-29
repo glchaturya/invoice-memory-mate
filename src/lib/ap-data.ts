@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { analyseException } from "./ai.functions";
+import { recallVendorMemory, retainResolution, type RetainResult } from "./hindsight.functions";
 import {
   detectExceptions,
   findSimilarCases,
@@ -249,10 +250,31 @@ export async function processInvoice(extracted: ExtractedInvoice, fileName: stri
     (a, b) => severityRank(b.severity) - severityRank(a.severity),
   );
 
-  // 7. Reason over the primary exception with the AI layer
+  // 7. RECALL from Hindsight persistent memory for every exception
+  const recalls = await Promise.all(
+    ordered.map((ex) =>
+      recallVendorMemory({
+        data: {
+          vendor_name: vendor!.name,
+          vendor_code: vendor!.vendor_code,
+          exception_type: ex.exception_type,
+          detail: `${ex.title}. ${ex.detail}`,
+        },
+      }).catch((error: Error) => ({
+        status: "error" as const,
+        query: "",
+        memories: [],
+        error: error.message,
+        recalled_at: new Date().toISOString(),
+      })),
+    ),
+  );
+
+  // 8. Reason over the primary exception with the AI layer
   const rows = [];
   for (const [index, ex] of ordered.entries()) {
     const similar = findSimilarCases(memoryCases, [ex], 4);
+    const recall = recalls[index];
     let recommendation: Recommendation = ruleBasedRecommendation(ex, similar);
 
     if (index === 0) {
@@ -295,6 +317,11 @@ export async function processInvoice(extracted: ExtractedInvoice, fileName: stri
               outcome: c.outcome,
               occurred_on: c.occurred_on,
             })),
+            hindsight_memories: recall.memories.map((m) => ({
+              id: m.id,
+              text: m.text,
+              occurred: m.occurred,
+            })),
           },
         });
         if (ai) {
@@ -320,7 +347,7 @@ export async function processInvoice(extracted: ExtractedInvoice, fileName: stri
       detail: ex.detail,
       amount_delta: ex.amount_delta,
       status: "open",
-      ai_recommendation: recommendation as unknown as Record<string, unknown>,
+      ai_recommendation: { ...recommendation, hindsight: recall } as unknown as Record<string, unknown>,
     });
   }
 
@@ -362,10 +389,51 @@ export async function decideException(input: {
   const invoice = (
     await supabase
       .from("invoices")
-      .select("invoice_number")
+      .select("invoice_number, invoice_date, po_number, subtotal, total_amount, po_id, vendors(name, vendor_code)")
       .eq("id", exception.invoice_id)
       .single()
-  ).data as { invoice_number: string } | null;
+  ).data as {
+    invoice_number: string;
+    invoice_date: string | null;
+    po_number: string | null;
+    subtotal: number;
+    total_amount: number;
+    po_id: string | null;
+    vendors: { name: string; vendor_code: string } | null;
+  } | null;
+
+  const po = invoice?.po_id
+    ? ((await supabase.from("purchase_orders").select("po_amount").eq("id", invoice.po_id).maybeSingle())
+        .data as { po_amount: number } | null)
+    : null;
+
+  // RETAIN the case + human resolution in Hindsight
+  const now = new Date().toISOString();
+  let retained: RetainResult;
+  try {
+    retained = await retainResolution({
+      data: {
+        document_id: `exception-${exception.id}`,
+        vendor_name: invoice?.vendors?.name ?? "Unknown vendor",
+        vendor_code: invoice?.vendors?.vendor_code ?? "unknown",
+        invoice_number: invoice?.invoice_number ?? null,
+        po_number: invoice?.po_number ?? null,
+        invoice_date: invoice?.invoice_date ?? null,
+        exception_type: exception.exception_type,
+        exception_title: exception.title,
+        po_amount: po ? Number(po.po_amount) : null,
+        invoice_amount: invoice ? Number(invoice.subtotal) : null,
+        discrepancy_amount: exception.amount_delta == null ? null : Number(exception.amount_delta),
+        discrepancy_reason: exception.detail ?? exception.title,
+        decision: status,
+        resolution: notes || `Marked ${status} by ${reviewer}.`,
+        reviewer,
+        timestamp: now,
+      },
+    });
+  } catch (error) {
+    retained = { status: "error", error: (error as Error).message, retained_at: now };
+  }
 
   await supabase.from("vendor_memory_cases").insert({
     vendor_id: exception.vendor_id,
@@ -395,5 +463,5 @@ export async function decideException(input: {
     })
     .eq("id", exception.invoice_id);
 
-  return { status };
+  return { status, retained };
 }
