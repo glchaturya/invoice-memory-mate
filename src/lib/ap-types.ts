@@ -45,6 +45,13 @@ export interface Recommendation {
   confidence: "low" | "medium" | "high";
   memory_used: string[];
   source: "ai" | "rules";
+  hindsight?: {
+    status: "ok" | "not_configured" | "error";
+    query: string;
+    memories: { id: string; text: string; context: string | null; occurred: string | null; tags: string[] }[];
+    error?: string;
+    recalled_at: string;
+  };
 }
 
 export interface Vendor {
