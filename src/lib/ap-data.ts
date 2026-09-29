@@ -274,7 +274,7 @@ export async function processInvoice(extracted: ExtractedInvoice, fileName: stri
   const rows = [];
   for (const [index, ex] of ordered.entries()) {
     const similar = findSimilarCases(memoryCases, [ex], 4);
-    const recall = recalls[index];
+    const recall = recalls[index]!;
     let recommendation: Recommendation = ruleBasedRecommendation(ex, similar);
 
     if (index === 0) {
